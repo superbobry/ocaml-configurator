@@ -1,0 +1,9 @@
+# OASIS_START
+# DO NOT EDIT (digest: 3eb76e5037ddd6082c79dbbb5396b463)
+version = "0.1"
+description = "Configuration management for OCaml"
+archive(byte) = "configurator.cma"
+archive(native) = "configurator.cmxa"
+exists_if = "configurator.cma"
+# OASIS_STOP
+
