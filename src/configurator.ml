@@ -10,12 +10,15 @@ module Config = struct
     in merge f
 end
 
-type t = Types.value Config.t
+type value = Types.value
+type t = value Config.t
 
 
 (* +----------+
    | Internal |
    +----------+ *)
+let flip2 f z = fun x y -> f x y z
+
 let rec handle_expr prefix = function
   | `Import fn           -> Config.merge (of_file fn)
   | `Group (name, exprs) ->
@@ -55,9 +58,32 @@ and of_files fns =
   let cfgs = List.map ~f:of_file fns in
   List.fold_right ~f:Config.merge ~init:Config.empty cfgs
 
+
 and show cfg =
   let bindings = Config.bindings cfg in
   let lines    = List.map
     ~f:(fun (key, value) -> key ^ ": " ^ (string_of_value value))
     bindings
   in String.concat ~sep:"\n" lines
+
+
+let get cfg key f =
+  try
+    f (Config.find key cfg)
+  with Not_found -> None
+
+let bool   = flip2 get (function `Bool b   -> Some b | _ -> None)
+and int    = flip2 get (function `Int n    -> Some n | _ -> None)
+and float  = flip2 get (function `Float f  -> Some f | _ -> None)
+and string = flip2 get (function `String s -> Some s | _ -> None)
+and list cfg key f =
+  let vs = get cfg key (function
+    | `List vs -> Some (List.map ~f vs)
+    | _        -> None)
+  in match vs with
+    | Some vs ->
+        List.fold_left
+          ~f:(fun acc -> function Some v -> v :: acc | None -> acc)
+          ~init:[]
+          vs
+    | None    -> []
