@@ -1,7 +1,7 @@
 {
   open Parser
 
-  let keywords = Hashtbl.create 9
+  let keywords = Hashtbl.create 1
   let () = List.iter (fun (kwd, token) -> Hashtbl.add keywords kwd token) [
     ("import", IMPORT);
   ]
@@ -9,18 +9,26 @@
 
 rule token = parse
   | [' ' '\t' '\r' '\n'] | '#' [^'\n']* {token lexbuf}
-  | '=' {EQUALS}
-  | ',' {COMMA}
-  | '[' {LSB}
-  | ']' {RSB}
-  | '{' {LCB}
-  | '}' {RCB}
-  | ['0'-'9']+ as lxm {INT(int_of_string(lxm))}
-  | ['A'-'Z' 'a'-'z']['A'-'Z' 'a'-'z' '0'-'9' '-' '_']* as lxm {
-    let lxm = String.lowercase lxm in
-    try
-      Hashtbl.find keywords lxm
-    with Not_found -> IDENT(lxm)
-  }
+  | '=' { EQUALS }
+  | ',' { COMMA }
+  | '[' { LBRACKET }
+  | ']' { RBRACKET }
+  | '{' { LBRACE }
+  | '}' { RBRACE }
+  | "yes" | "on" | "true" { TRUE }
+  | "no" | "off" | "false" { FALSE }
+  | ['0'-'9']+
+      {INT(int_of_string(Lexing.lexeme lexbuf))}
+  | ['0'-'9'] ['0'-'9']*
+      ('.' ['0'-'9']*)?
+      (['e' 'E'] ['+' '-']? ['0'-'9'] ['0'-'9']*)?
+      {FLOAT(float_of_string(Lexing.lexeme lexbuf))}
+  | ['A'-'Z' 'a'-'z']['A'-'Z' 'a'-'z' '0'-'9' '-' '_']*
+      {
+        let lxm = String.lowercase (Lexing.lexeme lexbuf) in
+        try
+          Hashtbl.find keywords lxm
+        with Not_found -> IDENT(lxm)
+      }
   | '"' ([^'"']+ as lxm) '"' {STRING(lxm)}
   | eof {EOF}

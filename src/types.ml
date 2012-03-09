@@ -4,6 +4,7 @@ type expr = [ `Import of string
             ]
 and value = [ `Bool of bool
             | `Int of int
+            | `Float of float
             | `String of string
             | `List of value list
             ]

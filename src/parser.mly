@@ -3,10 +3,11 @@
 %token TRUE FALSE
 %token EQUALS
 %token COMMA
-%token LSB RSB LCB RCB
+%token LBRACKET RBRACKET LBRACE RBRACE
 %token <int> INT
 %token <string> IDENT
 %token <string> STRING
+%token <float> FLOAT
 
 %start main
 %type <Types.expr list> main
@@ -23,9 +24,9 @@ expr_list:
 ;
 
 expr:
-  | IMPORT STRING           {`Import $2}
-  | IDENT EQUALS value      {`Bind  ($1, $3)}
-  | IDENT LCB expr_list RCB {`Group ($1, $3)}
+  | IMPORT STRING      {`Import $2}
+  | IDENT EQUALS value {`Bind  ($1, $3)}
+  | IDENT LBRACE expr_list RBRACE {`Group ($1, $3)}
 ;
 
 value_list:
@@ -39,7 +40,8 @@ value:
   | FALSE  {`Bool false}
   | INT    {`Int  $1}
   | STRING {`String $1}
-  | LSB value_list RSB {`List (List.rev $2)}
+  | FLOAT  {`Float $1}
+  | LBRACKET value_list RBRACKET {`List (List.rev $2)}
 ;
 
 %%
